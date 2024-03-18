@@ -1,0 +1,34 @@
+﻿.container {
+    font-size: 30px;
+    height: 70vh;
+}
+
+.spinner-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner {
+    width: 80px;
+    height: 80px;
+    border: 7px solid blue;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spinner 0.7s linear infinite;
+}
+
+.text {
+    text-align: center;
+    padding-left: 20px;
+}
+
+@keyframes spinner {
+    from {
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

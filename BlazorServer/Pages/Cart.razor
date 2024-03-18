@@ -1,0 +1,221 @@
+﻿@page "/cart"
+@using System.Security.Claims
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject CartRepository CartRepo
+@inject CartItemRepository CartItemRepo
+@inject UserRepository UserRepo
+@inject BookRepository BookRepo
+
+<div class="checkout-body">
+    <AuthorizeView>
+
+        <div class="small-container cart-page">
+            <table>
+                <thead>
+                <tr>
+                    <th>Book</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th></th>
+                </tr>
+                </thead>
+
+                @* @if (CartRepo.GetActiveByUserId(UserRepo.GetByEmail(context.User.Identity.Name).Id) == null) { *@
+                @*     CartRepo.Add(new CartModel { *@
+                @*         UserId = UserRepo.GetByEmail(context.User.Identity.Name).Id, *@
+                @*         Active = true *@
+                @*     }); *@
+                @*     Navigation.Refresh(true); *@
+                @* } *@
+
+                @if (UserRepo.GetAll() != null) {
+                    List<CartItemModel> items = CartItemRepo.GetItemsByCartId(CartRepo.GetActive(User).Id);
+
+                    TotalPrice = 0;
+
+                    foreach (CartItemModel item in items) {
+                        BookModel bookModel = item.BookModel;
+                        AuthorModel authorModel = bookModel.AuthorModel;
+                        DiscountModel? discountModel = bookModel.DiscountModel;
+
+                        double bookPrice = 0.00;
+
+                        if (bookModel.DiscountId == 0 || discountModel.Active == false) {
+                            bookPrice = bookModel.Price + item.BookTypeModel.PriceIncrease;
+                        } else if (discountModel.Active) {
+                            bookPrice = bookModel.Price + item.BookTypeModel.PriceIncrease
+                                        - bookModel.Price * discountModel.Percent / 100;
+                        }
+
+                        TotalPrice += bookPrice;
+
+                        <tr class="cart-entry">
+                            <td>
+                                <div class="cart-info">
+                                    <img src="@($"data:image/jped;base64,{bookModel.Image}")"
+                                         alt="Image not found..."
+                                         class="product-img default">
+                                    <div>
+                                        <p class="book-name" @onclick="x => NavItem(bookModel.Id)">@bookModel.Name</p>
+                                        <p class="book-author">@(authorModel.Name) @(authorModel.Surname)</p>
+                                        <a>
+                                            <strong>@item.BookTypeModel.Name</strong>
+                                        </a>
+                                        <br/>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>1</td>
+                            <td>$@bookPrice.ToString("0.00")</td>
+                            <td></td>
+                        </tr>
+                    }
+                }
+
+            </table>
+        </div>
+
+        <div class="payment-body">
+
+            <div class="payment-container">
+                <h1>Payment Method</h1>
+                <form action="/">
+                    <label for="country">
+                        Country
+                        <select name="country" id="country">
+                            <option value="india">lithuania</option>
+                            <option value="germany">germany</option>
+                            <option value="england">england</option>
+                            <option value="india">china</option>
+                            <option value="india">united states</option>
+                            <option value="india">netherlands</option>
+                        </select>
+                    </label>
+                    <label for="cardno">
+                        Card Number
+                        <input @bind="_paymentModel.CardNumber" type="text" name="cardno" id="cardno" maxlength="19"/>
+                    </label>
+                    <div class="float">
+                        <label for="validtill">
+                            Valid till
+                            <input @bind="_paymentModel.Valid" type="text" name="validtill" id="validtill" maxlength="7"/>
+                        </label>
+                        <label for="cvv">
+                            Cvv
+                            <input @bind="_paymentModel.Cvc" type="text" name="cvv" id="cvv" maxlength="3"/>
+                        </label>
+                    </div>
+                    <label for="checkbox">
+                        <input type="checkbox" name="checkbox" id="checkbox"/>
+                        <p>Payment Address is the same as the Delivery Address</p>
+                    </label>
+                    <button type="button" @onclick="Purchase" class="purchase-button">Pay $@TotalPrice.ToString("0.00")</button>
+                </form>
+            </div>
+        </div>
+
+    </AuthorizeView>
+</div>
+
+@code {
+    public ClaimsPrincipal AuthedUser { get; set; }
+    public UserModel? User { get; set; }
+    public double TotalPrice { get; set; }
+
+    private class PaymentModel {
+        public string CardNumber { get; set; } = string.Empty;
+        public string Valid { get; set; } = string.Empty;
+        public string Cvc { get; set; } = string.Empty;
+    }
+
+    private readonly PaymentModel _paymentModel = new();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+        }
+
+        User = UserRepo.GetByEmail(AuthedUser.Identity.Name);
+
+        if (CartRepo.GetActive(User) == null) {
+            CartRepo.Add(new CartModel {
+                Id = User.Id,
+                Active = true,
+                Total = 0
+            });
+            Navigation.Refresh();
+        }
+    }
+
+    private void Purchase() {
+        if (_paymentModel.Cvc.Length < 3 || _paymentModel.CardNumber.Length < 16 || _paymentModel.Valid.Length < 7) {
+            ToastService.ShowError("Payment details are not valid!");
+
+            return;
+        }
+
+        UserModel? user = UserRepo.GetByEmail(AuthedUser.Identity.Name);
+        CartModel cart = new();
+
+        foreach (CartModel cm in CartRepo.GetAll()) {
+            if (cm.Active) {
+                if (cm.UserId == user.Id) {
+                    cart = cm;
+                }
+            }
+        }
+
+        foreach (CartItemModel item in CartItemRepo.GetItemsByCartId(cart.Id)) {
+            BookModel bookModel = BookRepo.GetById(item.BookId);
+            bookModel.Purchases += 1;
+
+            BookRepo.Update(bookModel);
+
+            BookModel? book = BookRepo.GetById(item.BookId);
+            double bookPrice = 0.00;
+
+            if (book.DiscountId == 0 || book.DiscountModel.Active == false) {
+                bookPrice = book.Price + item.BookTypeModel.PriceIncrease;
+            } else if (book.DiscountModel.Active) {
+                bookPrice = book.Price + item.BookTypeModel.PriceIncrease
+                            - book.Price * book.DiscountModel.Percent / 100;
+            }
+
+            item.Price = bookPrice;
+
+            CartItemRepo.Update(item);
+        }
+
+
+        cart.Total = TotalPrice;
+        cart.PurchaseDate = DateTime.Now;
+        cart.Active = false;
+
+        CartRepo.Update(cart);
+
+        CartRepo.Add(new CartModel {
+            UserId = user.Id,
+            Active = true
+        });
+
+        ToastService.ShowSuccess("Purchased succesfully. Thanks for using our store!");
+
+        Navigation.NavigateTo("/gate");
+    }
+
+    private void NavItem(int id) {
+        Navigation.NavigateTo("/item/" + id);
+    }
+
+}

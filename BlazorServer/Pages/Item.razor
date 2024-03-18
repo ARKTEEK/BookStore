@@ -1,0 +1,245 @@
+﻿@page "/item"
+@page "/item/{Id:int}"
+@page "/item/{Id:int}/{Type:int}"
+@using System.Security.Claims
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@layout MainLayout
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@inject BookRepository BookRepo
+@inject DiscountRepository DiscountRepo
+@inject BookTypeRepository BookTypeRepo
+@inject UserRepository UserRepo
+@inject CartRepository CartRepo
+@inject CartItemRepository CartItemRepo
+
+<div class="item-body">
+    <div class="item-container">
+        <div class="product">
+            <div class="gallery">
+                <img src="@($"data:image/jped;base64,{Book.Image}")" alt="Image not found..."/>
+            </div>
+        </div>
+
+        <div class="details">
+            @if (BookRepo.GetAll() == null || DiscountRepo.GetAll() == null) {
+                <h1>Loading data...</h1>
+                Navigation.Refresh(true);
+            } else {
+                <h1>@Book.Name</h1>
+                <h2 class="book-author">
+                    @Book.AuthorModel.Name
+                    @Book.AuthorModel.Surname
+                    <span>(Author)</span>
+                </h2>
+
+                <div class="book-format-picker">
+                    <input id="1" type="radio" name="bookFormat" class="format-radio" checked="@Is1Checked" @onclick="@(x => NavType(1))">
+                    <label id="format1" class="book-format" @onclick="@(x => NavType(1))">
+                        <h3>Hardcover</h3>
+                        <p class="price">
+                            $@((Book.Price + BookTypeRepo.GetById(1).PriceIncrease -
+                                Book.Price *
+                                GetDiscount() / 100).ToString("0.00"))
+                        </p>
+                        <del>$@((Book.Price + BookTypeRepo.GetById(1).PriceIncrease).ToString("0.00"))</del>
+                    </label>
+
+                    <input type="radio" id="2" name="bookFormat" class="format-radio" checked="@Is2Checked" @onclick="@(x => NavType(2))">
+                    <label id="format2" class="book-format" @onclick="@(x => NavType(2))">
+                        <h3>Paperback</h3>
+                        <p class="price">
+                            $@((Book.Price + BookTypeRepo.GetById(2).PriceIncrease -
+                                Book.Price * GetDiscount() / 100).ToString("0.00"))
+                        </p>
+                        <del>$@((Book.Price + BookTypeRepo.GetById(2).PriceIncrease).ToString("0.00"))</del>
+                    </label>
+
+                    <input type="radio" id="3" name="bookFormat" class="format-radio" checked="@Is3Checked" @onclick="@(x => NavType(3))">
+                    <label id="format3" class="book-format" @onclick="@(x => NavType(3))">
+                        <h3>E-Book</h3>
+                        <p class="price">
+                            $@((Book.Price + BookTypeRepo.GetById(3).PriceIncrease -
+                                Book.Price * GetDiscount() / 100).ToString("0.00"))
+                        </p>
+                        <del>$@((Book.Price + BookTypeRepo.GetById(3).PriceIncrease).ToString("0.00"))</del>
+                        <p>
+                        </p>
+                    </label>
+                </div>
+
+                <a class="add-to-cart" @onclick="@(x => AddToCart())">ADD TO CART</a>
+
+                <h3>Description</h3>
+                <p>@Book.Description</p>
+
+                <div class="more-details">
+                    <h4>Product Details</h4>
+                    <p>Pages: @Book.Pages</p>
+                    <p>Genre: @Book.GenreModel.Name</p>
+
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            <div class="admin-buttons">
+                                <div class="action-button edit"
+                                     @onclick="@(x => RouteBookEdit(Id))">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </div>
+                                <div class="action-button delete"
+                                     @onclick="@(x => DeleteBook(Id))">
+                                    <i class="fa-solid fa-trash"></i>
+                                </div>
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="recommendations">
+    <div class="rec-title">
+        <p>YOU MIGHT LIKE</p>
+    </div>
+
+    <div class="product-grid">
+        @foreach (BookModel book in RandomBooks(5, BookRepo.GetAll())) {
+            <div class="showcase">
+                <div class="showcase-banner" @onclick="@(x => RouteBookWithId(book.Id))">
+                    <img src="@($"data:image/jped;base64,{book.Image}")"
+                         alt="Image not found..."
+                         class="product-img default">
+                </div>
+
+                <div class="showcase-content">
+                    <a class="showcase-category">@book.GenreModel.Name</a>
+
+                    <a>
+                        <h3 class="showcase-title">@book.Name</h3>
+                    </a>
+
+                    <div class="price-box">
+                        @if (book.DiscountModel == null || book.DiscountModel.Active == false) {
+                            <p class="price">$@((book.Price + BookTypeRepo.GetById(1).PriceIncrease).ToString("0.00"))</p>
+                        } else if (book.DiscountModel.Active) {
+                            <p class="price">$@CalculateDiscount(book, BookTypeRepo.GetById(1)).ToString("0.00")</p>
+                            <del>$@((book.Price + BookTypeRepo.GetById(1).PriceIncrease).ToString("0.00"))</del>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@code {
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+    private UserModel? User { get; set; }
+    private CartModel? Cart { get; set; }
+    public BookModel Book { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public int Type { get; set; }
+
+    public bool Is1Checked;
+    public bool Is2Checked;
+    public bool Is3Checked;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        Book = BookRepo.GetById(Id);
+
+        switch (Type) {
+            case 1:
+                Is1Checked = true;
+                Is2Checked = false;
+                Is3Checked = false;
+
+                break;
+            case 2:
+                Is1Checked = false;
+                Is2Checked = true;
+                Is3Checked = false;
+
+                break;
+            case 3:
+                Is1Checked = false;
+                Is2Checked = false;
+                Is3Checked = true;
+
+                break;
+            default:
+                Navigation.NavigateTo("/item/" + Id + "/1");
+
+                break;
+        }
+    }
+
+    private int GetDiscount() {
+        if (Book.DiscountModel != null && Book.DiscountModel.Active) {
+            return Book.DiscountModel.Percent;
+        }
+
+        return 0;
+    }
+
+    private void AddToCart() {
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+
+            return;
+        }
+
+        User = UserRepo.GetByEmail(AuthedUser.Identity.Name);
+
+        if (CartRepo.GetActive(User) == null) {
+            CartRepo.Add(new CartModel {
+                UserId = User.Id,
+                Active = true,
+                Total = 0
+            });
+        }
+
+        Cart = CartRepo.GetActive(User);
+
+        CartItemRepo.Add(new CartItemModel {
+            BookId = Id,
+            CartId = Cart.Id,
+            BookTypeId = Type
+        });
+
+        ToastService.ShowSuccess("Book succesfully added to your cart!");
+    }
+
+    private void RouteBookWithId(int id) {
+        Navigation.NavigateTo("/item/" + id + "/" + 1);
+    }
+
+    private void NavType(int type) {
+        Navigation.NavigateTo("/item/" + Id + "/" + type);
+        Navigation.Refresh(true);
+    }
+
+    private void RouteBookEdit(int id) {
+        Navigation.NavigateTo("/edit/book/" + id);
+    }
+
+    private void DeleteBook(int id) {
+        BookRepo.Delete(id);
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}

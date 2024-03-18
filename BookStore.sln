@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLibrary", "DataLibrary\DataLibrary.csproj", "{785B084A-EA68-4373-96B4-130B4A94F499}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorServer", "BlazorServer\BlazorServer.csproj", "{83B66F75-BD1C-4CD4-9BFC-04372A9CE240}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{785B084A-EA68-4373-96B4-130B4A94F499}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{785B084A-EA68-4373-96B4-130B4A94F499}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{785B084A-EA68-4373-96B4-130B4A94F499}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{785B084A-EA68-4373-96B4-130B4A94F499}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83B66F75-BD1C-4CD4-9BFC-04372A9CE240}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83B66F75-BD1C-4CD4-9BFC-04372A9CE240}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83B66F75-BD1C-4CD4-9BFC-04372A9CE240}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83B66F75-BD1C-4CD4-9BFC-04372A9CE240}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

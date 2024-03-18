@@ -1,0 +1,81 @@
+﻿@page "/login"
+@using System.Security.Claims
+@using DataLibrary.Repositories
+@using DataLibrary.Models
+@using BlazorServer.Auth
+@layout MainLayout
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject UserRepository UserRepo
+
+<script src="https://kit.fontawesome.com/1305fe95e0.js"></script>
+<body>
+<div class="settings-body">
+    <div class="container">
+        <header>Sign Up</header>
+        <form class="form">
+            <div class="input-box">
+                <label>Email</label>
+                <input @bind="_model.Email" type="text" placeholder="Enter your email" required/>
+            </div>
+
+            <div class="input-box">
+                <label>Password</label>
+                <input @bind="_model.Password" type="password" placeholder="Enter your password" required/>
+            </div>
+
+            <button type="button" @onclick="@(x => Authenticate())">Login</button>
+
+            <p class="nav-p" @onclick="@(x => NavSignup())">Create new account</p>
+        </form>
+    </div>
+</div>
+
+</body>
+
+@code {
+
+    private class Model {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/", true);
+        }
+    }
+
+    private readonly Model _model = new();
+
+    private async Task Authenticate() {
+        UserModel? userAccount = UserRepo.GetByEmail(_model.Email);
+
+        if (userAccount == null || userAccount.Password != _model.Password) {
+            return;
+        }
+
+        RoleModel? roleModule = userAccount.RoleModel;
+
+        AuthenticationProvider? customAuthStateProvider = (AuthenticationProvider)AuthStateProvider;
+
+        await customAuthStateProvider.UpdateAuthenticationState(new UserSession {
+            Email = userAccount.Email, Role = roleModule.Name
+        });
+
+        Navigation.NavigateTo("/", true);
+    }
+
+    private void NavSignup() {
+        Navigation.NavigateTo("/register");
+    }
+
+}

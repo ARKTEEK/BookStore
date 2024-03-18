@@ -1,0 +1,67 @@
+﻿@page "/purchases"
+@using System.Security.Claims
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserRepository UserRepo
+@inject CartRepository CartRepo
+
+<div class="body">
+
+    <AuthorizeView>
+
+        <div class="small-container cart-page">
+            <table>
+                <thead>
+                <tr>
+                    <th></th>
+                    <th colspan="5">ID</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total Price</th>
+                </tr>
+                </thead>
+                @if (UserRepo.GetAll() != null) {
+                    foreach (CartModel cart in CartRepo.GetInactiveUserCarts(User)) {
+                        <tr @onclick="() => RoutePurchase(cart.Id)" class="purchase-item">
+                            <td></td>
+                            <td colspan="5">@cart.Id</td>
+                            <td>@cart.PurchaseDate.ToString("yyy-MM-dd")</td>
+                            <td>Completed</td>
+                            <td>$@cart.Total.ToString("0.00")</td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+
+    </AuthorizeView>
+
+</div>
+
+@code {
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+    public UserModel? User { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+        }
+
+        User = UserRepo.GetByEmail(AuthedUser.Identity.Name);
+    }
+
+    public void RoutePurchase(int id) {
+        Navigation.NavigateTo("/purchase/" + id);
+    }
+
+}

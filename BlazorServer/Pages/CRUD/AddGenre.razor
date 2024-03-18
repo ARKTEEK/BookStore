@@ -1,0 +1,63 @@
+﻿@page "/add/genre"
+@using System.Security.Claims
+@using DataLibrary.Repositories
+@using DataLibrary.Models
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject GenreRepository GenreRepo
+@inject AuthenticationStateProvider AuthStateProvider
+
+
+<div class="settings-body">
+    <AuthorizeView>
+
+        <div class="container">
+            <header>Add new Genre</header>
+            <form class="form">
+                <div class="input-box">
+                    <label>Name</label>
+                    <input @bind="_model.Name" type="text" placeholder="Enter genre's name" required/>
+                </div>
+
+                <button type="button" @onclick="@(x => AddNewGenre())">Add Genre</button>
+            </form>
+        </div>
+    </AuthorizeView>
+</div>
+
+@code {
+
+    private class Model {
+        public string Name { get; set; }
+    }
+
+    [Parameter]
+    public string? Type { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private readonly Model _model = new();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+        }
+    }
+
+    public void AddNewGenre() {
+        GenreRepo.Add(new GenreModel {
+            Name = _model.Name
+        });
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}

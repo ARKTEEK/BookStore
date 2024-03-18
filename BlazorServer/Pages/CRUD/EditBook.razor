@@ -1,0 +1,220 @@
+﻿@page "/edit/book/{Id:int}"
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@using System.Security.Claims
+@using BlazorServer.Services.Interface
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject BookRepository BookRepo
+@inject AuthorRepository AuthorRepo
+@inject GenreRepository GenreRepo
+@inject DiscountRepository DiscountRepo
+
+<div class="settings-body">
+    <AuthorizeView>
+
+        <div class="container">
+            <header>Editing #@Id Book</header>
+            <form class="form">
+                <div class="column">
+                    <div class="input-box">
+                        <label>Name</label>
+                        <input @bind="_model.Name" type="text" placeholder="Enter book's name" required/>
+                    </div>
+
+                </div>
+
+                <div class="input-box">
+                    <label>Description</label>
+                    <textarea class="description-box" @bind="_model.Description" type="text"
+                           placeholder="Enter book's description" required></textarea>
+                </div>
+
+                <div class="column">
+                    <div class="input-box">
+                        <label>Price</label>
+                        <input @bind="_model.Price" type="text" placeholder="Enter book's price"
+                               required/>
+                    </div>
+                    <div class="input-box">
+                        <label>Amount</label>
+                        <input @bind="_model.Pages" type="text" placeholder="Enter book's pages"
+                               required/>
+                    </div>
+                </div>
+
+                <div class="input-box">
+                    <label>Choose a Author</label>
+                    <InputSelectNumber class="form-control" ValueChanged="@((int value) => AuthorHasChanged(value))"
+                                       ValueExpression="@(() => _model.AuthorId)"
+                                       Value="@_model.AuthorId">
+                        <option value="0">--Select book's author--</option>
+
+                        @foreach (AuthorModel author in Authors) {
+                            @if (author.Id == _model.AuthorId) {
+                                <option selected value="@author.Id">@author.Name @author.Surname</option>
+                            } else {
+                                <option value="@author.Id">@author.Name @author.Surname</option>
+                            }
+                        }
+                    </InputSelectNumber>
+
+                </div>
+
+                <div class="input-box">
+                    <label>Choose a Genre</label>
+                    <InputSelectNumber class="form-control" ValueChanged="@((int value) => GenreHasChanged(value))"
+                                       ValueExpression="@(() => _model.GenreId)"
+                                       Value="@_model.GenreId">
+                        <option value="0">--Select book's genre--</option>
+
+                        @foreach (GenreModel genre in Genres) {
+                            @if (genre.Id == _model.GenreId) {
+                                <option selected value="@genre.Id">@genre.Name</option>
+                            } else {
+                                <option value="@genre.Id">@genre.Name</option>
+                            }
+                        }
+                    </InputSelectNumber>
+
+                </div>
+
+                <div class="input-box">
+                    <label>Choose a Discount</label>
+                    <InputSelectNumber class="form-control" ValueChanged="@((int? value) => DiscountHasChanged(value))"
+                                       ValueExpression="@(() => _model.DiscountId)"
+                                       Value="@_model.DiscountId">
+                        <option value="0">--Select book's discount--</option>
+
+                        @foreach (DiscountModel discount in Discounts) {
+                            @if (discount.Id == _model.DiscountId) {
+                                <option selected value="@discount.Id">@discount.Name</option>
+                            } else {
+                                <option value="@discount.Id">@discount.Name</option>
+                            }
+                        }
+                    </InputSelectNumber>
+
+                </div>
+
+                <div class="upload-item">
+                    <label>Upload Image</label>
+                    <InputFile OnChange="HandleFileSelection" class="form-control" accept=".png, .jpg, .jpeg"/>
+                </div>
+
+                <button type="button" @onclick="@(x => UpdateBook())">Edit Book</button>
+            </form>
+        </div>
+    </AuthorizeView>
+</div>
+
+@code {
+
+    private class Model {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public double Price { get; set; }
+        public int Pages { get; set; }
+        public int GenreId { get; set; }
+        public int? DiscountId { get; set; }
+        public int AuthorId { get; set; }
+        public string Image { get; set; }
+    }
+
+    private readonly Model _model = new();
+
+    [Parameter]
+    public string? Type { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    public BookModel Book { get; set; }
+
+    private List<GenreModel> Genres { get; set; }
+    private List<DiscountModel> Discounts { get; set; }
+    private List<AuthorModel> Authors { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+        }
+
+        Genres = GenreRepo.GetAll();
+        Discounts = DiscountRepo.GetAll();
+        Authors = AuthorRepo.GetAll();
+
+        Book = BookRepo.GetById(Id);
+
+        _model.Name = Book.Name;
+        _model.Description = Book.Description;
+        _model.Pages = Book.Pages;
+        _model.Price = Book.Price;
+
+        _model.GenreId = Book.GenreId;
+        _model.DiscountId = Book.DiscountId;
+        _model.AuthorId = Book.AuthorId;
+        _model.Image = Book.Image;
+    }
+
+    private async Task GenreHasChanged(int id) {
+        _model.GenreId = id;
+
+        if (id == 0) {
+            Genres.Clear();
+        }
+    }
+
+    private async Task DiscountHasChanged(int? id) {
+        _model.DiscountId = id;
+
+        if (id == 0) {
+            Discounts.Clear();
+        }
+    }
+
+    private async Task AuthorHasChanged(int id) {
+        _model.AuthorId = id;
+
+        if (id == 0) {
+            Discounts.Clear();
+        }
+    }
+
+    public async Task HandleFileSelection(InputFileChangeEventArgs e) {
+        IBrowserFile? file = e.GetMultipleFiles().FirstOrDefault();
+
+        if (file != null) {
+            byte[] buffer = new byte[file.Size];
+
+            await using (Stream stream = file.OpenReadStream()) {
+                await stream.ReadAsync(buffer, 0, buffer.Length);
+            }
+
+            _model.Image = Convert.ToBase64String(buffer);
+        }
+    }
+
+    private void UpdateBook() {
+        Book.Name = _model.Name;
+        Book.Description = _model.Description;
+        Book.AuthorId = _model.AuthorId;
+        Book.GenreId = _model.GenreId;
+        Book.DiscountId = _model.DiscountId;
+        Book.Price = _model.Price;
+        Book.Pages = _model.Pages;
+        Book.Image = _model.Image;
+
+        BookRepo.Update(Book);
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}

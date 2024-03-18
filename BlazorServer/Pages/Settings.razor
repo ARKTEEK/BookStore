@@ -1,0 +1,79 @@
+﻿@page "/settings"
+@using System.Security.Claims
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserRepository UserRepo
+
+
+<div class="settings-body">
+    <AuthorizeView>
+
+        <div class="container">
+            <header>Account Information</header>
+            <form action="#" class="form">
+                <div class="column">
+                    <div class="input-box">
+                        <label>Name</label>
+                        <input @bind="User.Name" type="text" placeholder="Enter your name"
+                               required/>
+                    </div>
+
+                    <div class="input-box">
+                        <label>Surname</label>
+                        <input @bind="User.Surname" type="text" placeholder="Enter your surname"
+                               required/>
+                    </div>
+                </div>
+
+                <div class="input-box">
+                    <label>Email Address</label>
+                    <input @bind="User.Email" type="text" placeholder="Enter email address"
+                           required/>
+                </div>
+
+                <div class="input-box">
+                    <label>Phone Number</label>
+                    <input @bind="User.Telephone" type="number" placeholder="Enter phone number" required/>
+                </div>
+
+                <div class="input-box address">
+                    <label>Address</label>
+                    <input @bind="User.StreetAddress" type="text" placeholder="Enter street address"
+                           required/>
+                </div>
+
+                <div class="input-box">
+                    <label>City</label>
+                    <input @bind="User.City" type="text" placeholder="Enter your city" required/>
+                </div>
+
+                <button type="button" @onclick="@(x => UpdateUser())">Submit</button>
+            </form>
+        </div>
+    </AuthorizeView>
+</div>
+
+@code {
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+    public UserModel User { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        User = UserRepo.GetByEmail(AuthedUser.Identity.Name);
+    }
+
+    public void UpdateUser() {
+        UserRepo.Update(User);
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}

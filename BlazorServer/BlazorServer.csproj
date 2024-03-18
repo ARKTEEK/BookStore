@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <ItemGroup>
+        <PackageReference Include="Blazored.Toast" Version="4.1.0"/>
+        <PackageReference Include="Dapper" Version="2.1.15"/>
+        <PackageReference Include="MailKit" Version="4.3.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.11"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="Areas\Identity\Pages\Account\LogOut.cshtml"/>
+        <_ContentIncludedByDefault Remove="Areas\Identity\Pages\Shared\_LoginPartial.cshtml"/>
+        <_ContentIncludedByDefault Remove="Pages\Account\AccountInfo.razor"/>
+        <_ContentIncludedByDefault Remove="Pages\Account\AccountPassword.razor"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\DataLibrary\DataLibrary.csproj"/>
+    </ItemGroup>
+
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TargetFramework>net8.0</TargetFramework>
+        <UserSecretsId>aspnet-ticket_shop-7F94E93F-03C7-4AD4-9E97-AA8D60719F49</UserSecretsId>
+    </PropertyGroup>
+
+
+</Project>

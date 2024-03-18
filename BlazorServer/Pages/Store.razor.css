@@ -1,0 +1,365 @@
+.product-container {
+    font-family: 'Poppins', sans-serif;
+}
+
+a {
+    text-decoration: none;
+}
+
+li {
+    list-style: none;
+}
+
+ul {
+    padding-left: 0;
+}
+
+button {
+    background: none;
+    font: inherit;
+    border: none;
+    cursor: pointer;
+}
+
+img, button, a {
+    display: block;
+}
+
+.sidebar-category img {
+    width: 25px;
+    height: auto;
+}
+
+span {
+    display: inline-block;
+}
+
+html {
+    font-family: "Poppins", sans-serif;
+    overscroll-behavior: contain;
+}
+
+input {
+    display: block;
+    width: 100%;
+    font: inherit;
+}
+
+input::placeholder {
+    font: inherit;
+}
+
+/*-----------------------------------*\
+  #ADMIN-BUTTONS
+\*-----------------------------------*/
+
+.admin-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.action-button {
+    text-align: center;
+    display: inline-block;
+    padding: 5px 5px;
+    margin: 5px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+    max-height: 50px;
+    max-width: 50px;
+}
+
+.action-button.edit {
+    background-color: #28a745;
+    width: 40%;
+}
+
+.action-button.delete {
+    background-color: #dc3545;
+    width: 40%;
+}
+
+.action-button:hover {
+    background-color: #0b3cc1;
+}
+
+.genre-add-button:hover, .book-add-button:hover {
+    cursor: pointer;
+    color: #0a34a9;
+}
+
+/*-----------------------------------*\
+  #SIDEBAR
+\*-----------------------------------*/
+
+.sidebar {
+    background: hsl(0, 100%, 100%);
+    bottom: 0;
+    width: 100%;
+    max-width: 320px;
+    transition: 0.5s ease;
+    --fs-5: 0.941rem;
+    position: sticky;
+    top: 30px;
+    left: 0;
+    padding: 0;
+    min-width: calc(25% - 15px);
+    margin-bottom: 30px;
+    visibility: visible;
+    overflow-y: auto;
+    overscroll-behavior: auto;
+    z-index: 0;
+}
+
+.sidebar-category {
+    padding: 20px 20px 0;
+    margin-bottom: 30px;
+    border: 1px solid hsl(0, 0%, 93%);
+    border-radius: 10px;
+
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.sidebar-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.sidebar-title {
+    color: hsl(0, 0%, 27%);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+}
+
+.sidebar-menu-category {
+    display: flex;
+    justify-content: space-between;
+}
+
+.sidebar-accordion-menu {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar .menu-title-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+}
+
+.sidebar .menu-title {
+    font-size: 1rem;
+    color: hsl(0, 0%, 47%);
+    font-weight: 500;
+    height: 100%;
+    margin: 0;
+}
+
+.sidebar .menu-title:hover {
+    cursor: pointer;
+    color: #0E4BF1;
+}
+
+.sidebar .product-name {
+    text-transform: capitalize;
+}
+
+.sidebar-accordion-menu .add-icon,
+.sidebar-accordion-menu.active .remove-icon {
+    display: block;
+}
+
+.accordion-btn {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.accordion-panel {
+    display: none;
+}
+
+/*-----------------------------------*\
+  #PRODUCT GRID
+\*-----------------------------------*/
+
+.product-main {
+    margin-bottom: 30px;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+}
+
+.product-grid .showcase {
+    border: 1px solid hsl(0, 0%, 93%);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: 0.2s ease;
+}
+
+.product-grid .showcase:hover {
+    box-shadow: 0 0 10px hsla(0, 0%, 0%, 0.1);
+    cursor: pointer;
+}
+
+.product-grid .showcase-banner {
+    position: relative;
+}
+
+.product-grid .product-img {
+    width: 220px;
+    height: 355px;
+    object-fit: cover;
+    transition: 0.2s ease;
+}
+
+.product-grid .product-img.default {
+    position: relative;
+    z-index: 1;
+}
+
+.product-grid .showcase:hover {
+    transform: scale(1.03);
+}
+
+.product-grid .showcase-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    transform: translateX(50px);
+    transition: 0.2s ease;
+    z-index: 3;
+}
+
+.product-grid .showcase:hover .showcase-actions {
+    transform: translateX(0);
+}
+
+.product-grid .btn-action {
+    background: hsl(0, 100%, 100%);
+    color: hsl(0, 0%, 47%);
+    margin-bottom: 5px;
+    border: 1px solid hsl(0, 0%, 93%);
+    padding: 5px;
+    border-radius: 5px;
+    transition: 0.2s ease;
+}
+
+.product-grid .btn-action:hover {
+    background: hsl(0, 0%, 13%);
+    color: hsl(0, 100%, 100%);
+    border-color: hsl(0, 0%, 13%);
+}
+
+.product-grid .showcase-content {
+    padding: 15px 20px 0;
+    border-top: 1px solid hsl(0, 0%, 93%);
+}
+
+.products-showcase-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.products-showcase-title .title {
+    text-align: left;
+}
+
+.product-grid .showcase-category {
+    color: hsl(353, 100%, 78%);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.product-grid .showcase-title {
+    color: hsl(0, 0%, 47%);
+    font-size: 0.813rem;
+    font-weight: 300;
+    text-transform: capitalize;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    transition: 0.2s ease;
+}
+
+.product-grid .showcase-title:hover {
+    color: hsl(0, 0%, 13%);
+}
+
+.product-grid .price-box {
+    display: flex;
+    gap: 10px;
+    font-size: 0.875rem;
+    color: hsl(0, 0%, 13%);
+}
+
+.price {
+    margin-bottom: 0;
+}
+
+.product-grid .price {
+    font-weight: 700;
+}
+
+.product-grid del {
+    color: hsl(0, 0%, 47%);
+}
+
+.product-container .container {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 30px;
+    margin-bottom: 30px;
+    margin-top: 35px;
+}
+
+.product-box {
+    min-width: calc(75% - 15px);
+}
+
+.has-scrollbar {
+    padding-bottom: 5px;
+}
+
+.has-scrollbar::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.has-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent;
+    border: 3px solid hsl(0, 100%, 100%);
+    border-radius: 20px;
+}
+
+.has-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: hsl(0, 0%, 90%);
+}
+
+.has-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(0, 0%, 80%);
+}

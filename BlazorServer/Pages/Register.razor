@@ -1,0 +1,129 @@
+﻿@page "/register"
+@using System.Security.Claims
+@using DataLibrary.Repositories
+@using DataLibrary.Models
+@layout MainLayout
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@inject UserRepository UserRepo
+@inject RoleRepository RoleRepo
+
+<script src="https://kit.fontawesome.com/1305fe95e0.js"></script>
+<body>
+
+<div class="settings-body">
+    <div class="container">
+        <header>Sign Up</header>
+        <form class="form">
+            <div class="column">
+                <div class="input-box">
+                    <label>Name</label>
+                    <input @bind="_model.Name" type="text" placeholder="Enter your name"
+                           required/>
+                </div>
+                <div class="input-box">
+                    <label>Surname</label>
+                    <input @bind="_model.Surname" type="text" placeholder="Enter your surname"
+                           required/>
+                </div>
+            </div>
+
+            <div class="column">
+                <div class="input-box">
+                    <label>Password</label>
+                    <input @bind="_model.Password" type="password" maxlength="55" placeholder="Enter your password"
+                           required/>
+                </div>
+                <div class="input-box">
+                    <label>Repeat Password</label>
+                    <input type="password" maxlength="55" placeholder="Repeat your password"
+                           required/>
+                </div>
+            </div>
+
+            <div class="input-box">
+                <label>Email</label>
+                <input @bind="_model.Email" type="text" placeholder="Enter your email" required/>
+            </div>
+
+            <div class="input-box">
+                <label>Street Address</label>
+                <input @bind="_model.Address" type="text" placeholder="Enter your address" required/>
+            </div>
+
+            <div class="input-box">
+                <label>City</label>
+                <input @bind="_model.City" type="text" placeholder="Enter your city" required/>
+            </div>
+
+            <div class="input-box">
+                <label>Telephone</label>
+                <input @bind="_model.Telephone" type="number" maxlength="25" placeholder="Enter your telephone" required/>
+            </div>
+
+            <button type="button" @onclick="@(x => AuthNew())">Register</button>
+
+            <p class="nav-p" @onclick="@(x => NavSignin())">Login to existing account</p>
+        </form>
+    </div>
+</div>
+
+
+</body>
+
+@code {
+
+    private class Model {
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public int Telephone { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+    }
+
+    private readonly Model _model = new();
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/", true);
+        }
+    }
+
+    private void AuthNew() {
+        UserModel? user = UserRepo.GetByEmail(_model.Email);
+
+        if (user != null) {
+            ToastService.ShowError("Email already in use!");
+        } else if (user == null) {
+            UserRepo.Add(new UserModel {
+                RoleId = RoleRepo.GetDefault().Id,
+                Name = _model.Name,
+                Surname = _model.Surname,
+                Telephone = _model.Telephone,
+                StreetAddress = _model.Address,
+                City = _model.City,
+                Email = _model.Email,
+                Password = _model.Password
+            });
+        } else {
+            ToastService.ShowError("Something went wrong, try again!");
+        }
+
+        Navigation.NavigateTo("/auth", true);
+    }
+
+    private void NavSignin() {
+        Navigation.NavigateTo("/login");
+    }
+
+}

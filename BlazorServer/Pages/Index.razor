@@ -1,0 +1,218 @@
+﻿@page "/"
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@inject NavigationManager Navigation
+@inject BookRepository BookRepository
+@inject BookTypeRepository BookTypeRepository
+
+@* PROMOTIONAL BANNER *@
+<div class="banner">
+    <p class="banner-header">RECOMMENDED BOOKS</p>
+
+    <AuthorizeView Roles="admin">
+        <Authorized>
+            <div class="meow">Edit</div>
+        </Authorized>
+    </AuthorizeView>
+
+    <div class="container">
+        <div class="slider-container has-scrollbar">
+
+            <div class="slider-item">
+
+                <div class="ad-container">
+
+                    <div class="image-side">
+                        <img src="@($"data:image/jped;base64,{BookRepository.GetById(5).Image}")" alt="Image not found..."
+                             class="product-img default">
+                    </div>
+                    <div class="info-side">
+                        <div class="book-info">
+                            <span>
+                                <strong>Name:</strong> @BookRepository.GetById(5).Name
+                            </span>
+                            <span>
+                                <strong>Author:</strong> @BookRepository.GetById(5).AuthorModel.Name
+                                @BookRepository.GetById(5).AuthorModel.Surname
+                            </span>
+                            <span>
+                                <strong>Genre:</strong> @BookRepository.GetById(5).GenreModel.Name
+                            </span>
+                            <span>
+                                <strong>Description:</strong> @BookRepository.GetById(5).Description
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="slider-item">
+
+                <div class="ad-container">
+                    <div class="image-side">
+                        <img src="@($"data:image/jped;base64,{BookRepository.GetById(3).Image}")" alt="Image not found..."
+                             class="product-img default">
+                    </div>
+                    <div class="info-side">
+                        <div class="book-info">
+                            <span>
+                                <strong>Name:</strong> @BookRepository.GetById(3).Name
+                            </span>
+                            <span>
+                                <strong>Author:</strong> @BookRepository.GetById(3).AuthorModel.Name
+                                @BookRepository.GetById(3).AuthorModel.Surname
+                            </span>
+                            <span>
+                                <strong>Genre:</strong> @BookRepository.GetById(3).GenreModel.Name
+                            </span>
+                            <span>
+                                <strong>Price:</strong> $@((BookRepository.GetById(3).Price +
+                                                            BookTypeRepository.GetById(1).PriceIncrease).ToString("0.00"))
+                            </span>
+                            <span>
+                                <strong>Description</strong> @BookRepository.GetById(3).Description
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="slider-item">
+
+                <div class="ad-container">
+                    <div class="image-side">
+                        <img src="@($"data:image/jped;base64,{BookRepository.GetById(9).Image}")" alt="Image not found..."
+                             class="product-img default">
+                    </div>
+                    <div class="info-side">
+                        <div class="book-info">
+                            <span>
+                                <strong>Name:</strong> @BookRepository.GetById(9).Name
+                            </span>
+                            <span>
+                                <strong>Author:</strong> @BookRepository.GetById(9).AuthorModel.Name
+                                @BookRepository.GetById(9).AuthorModel.Surname
+                            </span>
+                            <span>
+                                <strong>Genre</strong> @BookRepository.GetById(9).GenreModel.Name
+                            </span>
+                            <span>
+                                <strong>Price:</strong> $@((BookRepository.GetById(9).Price +
+                                                            BookTypeRepository.GetById(1).PriceIncrease).ToString("0.00"))
+                            </span>
+                            <span>
+                                <strong>Description:</strong> @BookRepository.GetById(9).Description
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+@* PROMOTIONAL BANNER *@
+
+@* TOP SELLERS *@
+<div class="recommendations">
+
+    <div class="rec-title">
+        <p>TOP SELLERS</p>
+    </div>
+
+    <div class="product-grid">
+
+        @foreach (BookModel book in TopBooks()) {
+            <div class="showcase">
+
+                <div class="showcase-banner" @onclick="@(x => RouteBookWithId(book.Id))">
+                    <img src="@string.Format("data:image/jped;base64,{0}", book.Image)" alt="Image not found..."
+                         class="product-img default">
+                </div>
+
+                <div class="showcase-content">
+
+                    <a class="showcase-category">@book.GenreModel.Name</a>
+
+                    <a>
+                        <h3 class="showcase-title">@book.Name</h3>
+                    </a>
+
+                    <div class="price-box">
+                        @if (book.DiscountId == null || book.DiscountModel.Active == false) {
+                            <p class="price">$@((book.Price + BookTypeRepository.GetById(1).PriceIncrease).ToString("0.00"))</p>
+                        } else if (book.DiscountModel.Active) {
+                            <p class="price">$@CalculateDiscount(book, BookTypeRepository.GetById(1)).ToString("0.00")</p>
+                            <del>$@((book.Price + BookTypeRepository.GetById(1).PriceIncrease).ToString("0.00"))</del>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+<div class="recommendations">
+
+    <div class="rec-title">
+        <p>RANDOM BOOKS</p>
+    </div>
+
+    <div class="product-grid">
+
+        @foreach (BookModel book in RandomBooks(5, BookRepository.GetAll())) {
+            <div class="showcase">
+
+                <div class="showcase-banner" @onclick="@(x => RouteBookWithId(book.Id))">
+                    <img src="@($"data:image/jped;base64,{book.Image}")" alt="Image not found..."
+                         class="product-img default">
+                </div>
+
+                <div class="showcase-content">
+
+                    <a class="showcase-category">@book.GenreModel.Name</a>
+
+                    <a>
+                        <h3 class="showcase-title">@book.Name</h3>
+                    </a>
+
+                    <div class="price-box">
+                        @if (book.DiscountId == null || book.DiscountModel.Active == false) {
+                            <p class="price">$@((book.Price + BookTypeRepository.GetById(1).PriceIncrease).ToString("0.00"))</p>
+                        } else if (book.DiscountModel.Active) {
+                            double discountedPrice = book.Price + BookTypeRepository.GetById(1).PriceIncrease
+                                                     - book.Price * book.DiscountModel.Percent / 100;
+
+
+                            <p class="price">$@discountedPrice.ToString("0.00")</p>
+                            <del>$@((book.Price + BookTypeRepository.GetById(1).PriceIncrease).ToString("0.00"))</del>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+@* TOP SELLERS *@
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; }
+
+
+    private void RouteBookWithId(int id) {
+        Navigation.NavigateTo("/item/" + id + "/" + 1);
+    }
+
+    public List<BookModel> TopBooks() {
+        List<BookModel> books = BookRepository.GetAll();
+
+        return books.OrderByDescending(b => b.Purchases).Take(5).ToList();
+    }
+
+}

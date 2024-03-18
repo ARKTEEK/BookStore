@@ -1,0 +1,137 @@
+﻿@page "/manage"
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@inject NavigationManager Navigation
+@inject UserRepository UserRepo
+@inject CartRepository CartRepo
+@inject BookRepository BookRepo
+
+<body>
+<div class="manage-container">
+
+    <div class="entry">
+        <div class="tb-title">
+            <h2>
+                <strong>USERS</strong>
+            </h2>
+        </div>
+
+        <div class="table-container">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (UserModel user in _users) {
+                    <tr @onclick="@(x => RouteUserWithId(user.Id))">
+                        <td>@user.Id</td>
+                        <td>@user.Name @user.Surname</td>
+                        <td>@user.Email</td>
+                        <td>@user.RoleModel.Name</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="entry">
+
+        <div class="tb-title">
+            <h2>
+                <strong>PURCHASES</strong>
+            </h2>
+        </div>
+
+        <div class="table-container">
+
+            <table class="table table-hover">
+                <thead class="table-dark">
+                <tr>
+                    <th>Order ID</th>
+                    <th>User</th>
+                    <th>Price</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (CartModel cart in _carts) {
+                    <tr @onclick="@(x => RouteCartWithId(cart.Id))">
+                        <td>@cart.Id</td>
+                        <td>@cart.UserModel.Email</td>
+                        <td>$@cart.Total.ToString("0.00")</td>
+                        <td>@cart.PurchaseDate.ToString("yyyy-MM-dd")</td>
+                        <td>Complete</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="entry last">
+
+        <div class="tb-title">
+            <h2>
+                <strong>BOOKS</strong>
+            </h2>
+        </div>
+
+        <div class="table-container">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                <tr>
+                    <th>Book ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Genre</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (BookModel book in _books) {
+                    <tr @onclick="@(x => RouteBookWithId(book.Id))">
+                        <td>@book.Id</td>
+                        <td>@book.Name</td>
+                        <td>@book.AuthorModel.Name @book.AuthorModel.Surname</td>
+                        <td>@book.GenreModel.Name</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+</body>
+
+@code {
+
+    List<UserModel> _users = new();
+    List<CartModel> _carts = new();
+    List<BookModel> _books = new();
+
+    protected override async Task OnInitializedAsync() {
+        _users = UserRepo.GetAll();
+        _carts = CartRepo.GetInactiveCarts();
+        _books = BookRepo.GetAll();
+    }
+
+    private void RouteBookWithId(int id) {
+        Navigation.NavigateTo("/item/" + id + "/" + 1);
+    }
+
+    private void RouteCartWithId(int id) {
+        Navigation.NavigateTo("/purchase/" + id);
+    }
+
+    private void RouteUserWithId(int id) {
+        Navigation.NavigateTo("/edit/user/" + id);
+    }
+
+}

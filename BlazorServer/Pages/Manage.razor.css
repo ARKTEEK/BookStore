@@ -1,0 +1,52 @@
+﻿body {
+    align-items: center;
+    height: 100%;
+    margin: 0;
+}
+
+.manage-container {
+    align-items: center;
+}
+
+.tb-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.table-container {
+    border-collapse: collapse;
+    margin: auto;
+    width: 75%;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+table {
+    border-collapse: collapse;
+    margin: auto;
+    width: 100%;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+th, td {
+    padding: 10px;
+}
+
+select {
+    padding: 8px;
+}
+
+.entry {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top: 1px solid dimgray;
+}
+
+.entry .last {
+    padding-bottom: 100px;
+}

@@ -1,0 +1,99 @@
+.body {
+    min-height: 82vh;
+}
+
+.small-container {
+    width: 60%;
+    align-items: center;
+    overflow: scroll;
+    max-height: 82vh;
+    margin: 1px auto;
+}
+
+table, th, td {
+    border-collapse: collapse;
+}
+
+table {
+    width: 100%;
+}
+
+.cart-info {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.cart-entry {
+    border-bottom: 1px solid black;
+}
+
+th {
+    text-align: left;
+    padding: 5px;
+    color: #fff;
+    background: #0b3cc1;
+    font-weight: normal;
+}
+
+td {
+    padding: 10px 5px;
+}
+
+td input {
+    width: 40px;
+    height: 30px;
+    padding: 5px;
+}
+
+td a {
+    color: #ff523b;
+    font-size: 12px;
+}
+
+td img {
+    width: 155px;
+    height: 234px;
+    margin-right: 10px;
+}
+
+.total-price {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.total-price table {
+    border-top: 3px solid #ff523b;
+    width: 100%;
+    max-width: 410px;
+}
+
+.cart-entry .product-img:hover {
+    cursor: pointer;
+}
+
+.cart-entry .book-name:hover {
+    color: #0b3cc1;
+    cursor: pointer;
+}
+
+.cart-entry .book-author {
+    color: #0b3cc1;
+}
+
+.cart-entry .book-author:hover {
+    cursor: pointer;
+    color: black;
+}
+
+.cart-entry:hover {
+    cursor: pointer;
+}
+
+.purchase-item {
+    border-bottom: 1px solid black;
+}
+
+tr:hover {
+    cursor: pointer;
+    background-color: lightgrey;
+}

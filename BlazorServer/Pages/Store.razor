@@ -1,0 +1,342 @@
+﻿@page "/store"
+@page "/store/{Type}"
+@page "/store/{Type}/{SubType}"
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@inject BookRepository BookRepo
+@inject GenreRepository GenreRepo
+@inject AuthorRepository AuthorRepo
+@inject NavigationManager Navigation
+@inject BookTypeRepository BookTypeRepo
+
+<div class="product-container">
+
+    <div class="container">
+        @* SIDEBAR START *@
+        <div class="sidebar has-scrollbar" data-mobile-menu>
+            @* SIDEBAR GENRE START*@
+            <div class="sidebar-category">
+
+                <div class="sidebar-top">
+                    <h2 class="sidebar-title">CHOOSE GENRE</h2>
+
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            <h2 class="genre-add-button" @onclick="@(x => RouteGenreAdd())">+</h2>
+                        </Authorized>
+                    </AuthorizeView>
+
+                </div>
+
+                <ul class="sidebar-menu-category-list">
+
+                    @if (_genres == null) {
+                        <p>Loading...</p>
+                    } else if (_genres.Count <= 0) {
+                        <p>Empty...</p>
+                    } else {
+                        @foreach (GenreModel genre in _genres) {
+                            <li class="sidebar-menu-category">
+                                <div class="sidebar-accordion-menu" data-accordion-btn>
+                                    <div class="menu-title-flex">
+                                        <p class="menu-title" @onclick="@(x => RouteGenre(genre.Name))">@genre.Name</p>
+                                    </div>
+                                </div>
+                                <AuthorizeView Roles="Admin">
+                                    <Authorized>
+
+                                        <div class="admin-buttons">
+                                            <div class="action-button edit"
+                                                 @onclick="@(x => RouteGenreEdit(genre.Id))">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </div>
+                                            <div class="action-button delete"
+                                                 @onclick="@(x => DeleteGenre(genre.Id))">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </div>
+                                        </div>
+                                    </Authorized>
+                                </AuthorizeView>
+                            </li>
+                        }
+                    }
+
+                </ul>
+
+            </div>
+            @* SIDEBAR GENRE END *@
+
+            @* SIDEBAR AUTHOR START*@
+            <div class="sidebar-category">
+
+                <div class="sidebar-top">
+                    <h2 class="sidebar-title">CHOOSE AUTHOR</h2>
+
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            <h2 class="genre-add-button" @onclick="@(x => RouteAuthorAdd())">+</h2>
+                        </Authorized>
+                    </AuthorizeView>
+
+                </div>
+
+                <ul class="sidebar-menu-category-list">
+
+                    @if (_genres == null) {
+                        <p>Loading...</p>
+                    } else if (_genres.Count <= 0) {
+                        <p>Empty...</p>
+                    } else {
+                        @foreach (AuthorModel author in _authors) {
+                            <li class="sidebar-menu-category">
+                                <div class="sidebar-accordion-menu" data-accordion-btn>
+                                    <div class="menu-title-flex">
+                                        <p class="menu-title" @onclick="@(x => RouteAuthor(author.Name, author.Surname))">@author.Name @author.Surname</p>
+                                    </div>
+                                </div>
+                                <AuthorizeView Roles="Admin">
+                                    <Authorized>
+
+                                        <div class="admin-buttons">
+                                            <div class="action-button edit"
+                                                 @onclick="@(x => RouteAuthorEdit(author.Id))">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </div>
+                                            <div class="action-button delete"
+                                                 @onclick="@(x => DeleteAuthor(author.Id))">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </div>
+                                        </div>
+                                    </Authorized>
+                                </AuthorizeView>
+                            </li>
+                        }
+                    }
+
+                </ul>
+
+            </div>
+            @* SIDEBAR AUTHOR END *@
+
+        </div>
+        @* SIDEBAR END *@
+
+        <div class="product-box">
+
+            <div class="product-main">
+
+                <div class="products-showcase-title">
+                    @if (Type == "discount") {
+                        <h2 class="title">Special Offers</h2>
+                    } else if (Type == "new") {
+                        <h2 class="title">New Books</h2>
+                    } else if (Type == "genre") {
+                        <h2 class="title">@SubType Books</h2>
+                    } else {
+                        <h2 class="title">All Books</h2>
+                    }
+                    <AuthorizeView Roles="Admin">
+                        <Authorized>
+                            <h2 class="book-add-button" @onclick="@(x => RouteBookAdd())">+</h2>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
+
+                <div class="product-grid">
+                    @if (_books == null) {
+                        <p>Loading...</p>
+                    } else if (_books.Count <= 0) {
+                        <p>Empty...</p>
+                    } else {
+                        @foreach (BookModel book in _books) {
+                            <div class="showcase">
+
+                                <div class="showcase-banner" @onclick="@(x => RouteBookWithId(book.Id))">
+                                    <img src="@string.Format("data:image/jped;base64,{0}", book.Image)"
+                                         alt="Image not found..."
+                                         class="product-img default">
+                                </div>
+
+                                <AuthorizeView Roles="Admin">
+                                    <Authorized>
+
+                                        <div class="admin-buttons">
+                                            <div class="action-button edit"
+                                                 @onclick="@(x => RouteBookEdit(book.Id))">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </div>
+                                            <div class="action-button delete"
+                                                 @onclick="@(x => DeleteBook(book.Id))">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </div>
+                                        </div>
+
+                                    </Authorized>
+                                </AuthorizeView>
+
+                                <div class="showcase-content">
+
+                                    <a class="showcase-category">@book.GenreModel.Name</a>
+
+                                    <a>
+                                        <h3 class="showcase-title">@book.Name</h3>
+                                    </a>
+
+                                    <div class="price-box">
+                                        @if (book.DiscountModel == null || book.DiscountModel.Active == false) {
+                                            <p class="price">$@((book.Price + BookTypeRepo.GetById(1).PriceIncrease).ToString("0.00"))</p>
+                                        } else if (book.DiscountModel.Active) {
+                                            double discountedPrice = book.Price + BookTypeRepo.GetById(1).PriceIncrease
+                                                                     - book.Price * book.DiscountModel.Percent / 100;
+
+                                            <p class="price">$@discountedPrice.ToString("0.00")</p>
+                                            <del>$@((book.Price + BookTypeRepo.GetById(1).PriceIncrease).ToString("0.00"))</del>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public string Type { get; set; }
+
+    [Parameter]
+    public string SubType { get; set; }
+
+    private List<BookModel> _books;
+    private List<GenreModel> _genres;
+    private List<AuthorModel> _authors;
+
+    protected override async Task OnInitializedAsync() {
+        StateHasChanged();
+        _genres = GenreRepo.GetAll();
+        _authors = AuthorRepo.GetAll();
+    }
+
+
+    protected override async Task OnParametersSetAsync() {
+        switch (Type) {
+            case "discount":
+                _books = new List<BookModel>();
+
+                foreach (BookModel book in BookRepo.GetAll()) {
+                    if (book.DiscountId != 0) {
+                        _books.Add(book);
+                    }
+                }
+
+                break;
+            case "new":
+                _books = new List<BookModel>();
+                _books = BookRepo.GetAll().OrderBy(x => x.CreatedAt).ToList();
+
+                break;
+            case "genre":
+                _books = new List<BookModel>();
+
+                foreach (BookModel book in BookRepo.GetAll()) {
+                    if (GenreRepo.GetById(book.GenreId).Name == SubType) {
+                        _books.Add(book);
+                    }
+                }
+
+                break;
+            case "author":
+                _books = new List<BookModel>();
+
+                foreach (BookModel book in BookRepo.GetAll()) {
+                    string[] author = SubType.Split(" ");
+
+                    foreach (string i in author) {
+                        if (book.AuthorModel.Name.IndexOf(i, StringComparison.OrdinalIgnoreCase) >= 0
+                            || book.AuthorModel.Surname.IndexOf(i, StringComparison.OrdinalIgnoreCase) >= 0) {
+                            if (_books.Contains(book)) continue;
+                            _books.Add(book);
+                        }
+                    }
+                }
+
+                break;
+            case "search":
+                foreach (BookModel book in BookRepo.GetAll()) {
+                    if (book.Name.IndexOf(SubType, StringComparison.OrdinalIgnoreCase) >= 0
+                        || book.GenreModel.Name.IndexOf(SubType, StringComparison.OrdinalIgnoreCase) >= 0
+                        || book.AuthorModel.Name.IndexOf(SubType, StringComparison.OrdinalIgnoreCase) >= 0
+                        || book.AuthorModel.Surname.IndexOf(SubType, StringComparison.OrdinalIgnoreCase) >= 0)
+                        _books.Add(book);
+                }
+
+                break;
+            default:
+                _books = BookRepo.GetAll();
+
+                break;
+        }
+    }
+
+    private void RouteBookWithId(int id) {
+        Navigation.NavigateTo("/item/" + id + "/" + 1);
+    }
+
+    private void RouteGenreAdd() {
+        Navigation.NavigateTo("/add/genre");
+    }
+
+    private void RouteBookAdd() {
+        Navigation.NavigateTo("/add/book");
+    }
+
+    private void RouteBookEdit(int id) {
+        Navigation.NavigateTo("/edit/book/" + id);
+    }
+
+    private void RouteGenreEdit(int id) {
+        Navigation.NavigateTo("/edit/genre/" + id);
+    }
+
+    private void RouteGenre(string id) {
+        Navigation.NavigateTo("/store/genre/" + id);
+    }
+
+    private void RouteAuthorAdd() {
+        Navigation.NavigateTo("/add/author");
+    }
+
+    private void RouteAuthorEdit(int id) {
+        Navigation.NavigateTo("/edit/author/" + id);
+    }
+
+    private void DeleteAuthor(int id) {
+        AuthorRepo.Delete(id);
+        Navigation.NavigateTo("/gate", true);
+    }
+
+    private void RouteAuthor(string id, string id2) {
+        Navigation.NavigateTo("/store/author/" + id + " " + id2);
+    }
+
+    private void DeleteBook(int id) {
+        BookRepo.Delete(id);
+        Navigation.NavigateTo("/gate", true);
+    }
+
+    private void DeleteGenre(int id) {
+        GenreRepo.Delete(id);
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}

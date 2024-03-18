@@ -1,0 +1,68 @@
+﻿@page "/add/author"
+@using System.Security.Claims
+@using DataLibrary.Repositories
+@using DataLibrary.Models
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject AuthorRepository AuthorService
+
+<div class="settings-body">
+    <AuthorizeView>
+
+        <div class="container">
+            <header>Add new Author</header>
+            <form class="form">
+                <div class="input-box">
+                    <label>Name</label>
+                    <input @bind="_model.Name" type="text" placeholder="Enter author's name" required/>
+                </div>
+
+                <div class="input-box">
+                    <label>Surname</label>
+                    <input @bind="_model.Surname" type="text" placeholder="Enter author's surname" required/>
+                </div>
+
+                <button type="button" @onclick="@(x => AddNewAuthor())">Add Author</button>
+            </form>
+        </div>
+    </AuthorizeView>
+</div>
+
+@code {
+
+    private class Model {
+        public string Name { get; set; }
+        public string Surname { get; set; }
+    }
+
+    [Parameter]
+    public string? Type { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private readonly Model _model = new();
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+        }
+    }
+
+    public void AddNewAuthor() {
+        AuthorService.Add(new AuthorModel {
+            Name = _model.Name,
+            Surname = _model.Surname
+        });
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}

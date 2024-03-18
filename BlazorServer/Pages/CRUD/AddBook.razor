@@ -1,0 +1,203 @@
+﻿@page "/add/book"
+@using System.Security.Claims
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@using BlazorServer.Services.Interface
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject AuthorRepository AuthorRepo
+@inject GenreRepository GenreRepo
+@inject DiscountRepository DiscountRepo
+@inject BookRepository BookRepo
+
+<div class="settings-body">
+    <AuthorizeView>
+
+        <div class="container">
+            <header>Add new Book</header>
+            <form class="form">
+                <div class="column">
+                    <div class="input-box">
+                        <label>Name</label>
+                        <input @bind="_model.Name" type="text" placeholder="Enter book's name" required/>
+                    </div>
+
+                </div>
+
+                <div class="input-box">
+                    <label>Description</label>
+                    <textarea class="description-box" @bind="_model.Description" type="text"
+                           placeholder="Enter book's description" required></textarea>
+                </div>
+
+                <div class="column">
+                    <div class="input-box">
+                        <label>Price</label>
+                        <input @bind="_model.Price" type="text" placeholder="Enter book's price"
+                               required/>
+                    </div>
+                    <div class="input-box">
+                        <label>Pages</label>
+                        <input @bind="_model.Pages" type="text" placeholder="Enter book's pages"
+                               required/>
+                    </div>
+                </div>
+
+                <div class="input-box">
+                    <label>Choose a Author</label>
+                    <InputSelectNumber class="form-control" ValueChanged="@((int value) => AuthorHasChanged(value))"
+                                       ValueExpression="@(() => _model.AuthorId)"
+                                       Value="@_model.AuthorId">
+                        <option value="0">--Select book's author--</option>
+
+                        @foreach (AuthorModel author in _authors) {
+                            @if (author.Id == _model.AuthorId) {
+                                <option selected value="@author.Id">@author.Name @author.Surname</option>
+                            } else {
+                                <option value="@author.Id">@author.Name @author.Surname</option>
+                            }
+                        }
+                    </InputSelectNumber>
+
+                </div>
+
+                <div class="input-box">
+                    <label>Choose a Genre</label>
+                    <InputSelectNumber class="form-control" ValueChanged="@((int value) => GenreHasChanged(value))"
+                                       ValueExpression="@(() => _model.GenreId)"
+                                       Value="@_model.GenreId">
+                        <option value="0">--Select book's genre--</option>
+
+                        @foreach (GenreModel genre in _genres) {
+                            @if (genre.Id == _model.GenreId) {
+                                <option selected value="@genre.Id">@genre.Name</option>
+                            } else {
+                                <option value="@genre.Id">@genre.Name</option>
+                            }
+                        }
+                    </InputSelectNumber>
+
+                </div>
+
+                <div class="input-box">
+                    <label>Choose a Discount</label>
+                    <InputSelectNumber class="form-control" ValueChanged="@((int value) => DiscountHasChanged(value))"
+                                       ValueExpression="@(() => _model.DiscountId)"
+                                       Value="@_model.DiscountId">
+                        <option value="0">--Select book's discount--</option>
+
+                        @foreach (DiscountModel discount in _discounts) {
+                            @if (discount.Id == _model.DiscountId) {
+                                <option selected value="@discount.Id">@discount.Name</option>
+                            } else {
+                                <option value="@discount.Id">@discount.Name</option>
+                            }
+                        }
+                    </InputSelectNumber>
+
+                </div>
+
+                <div class="upload-item">
+                    <label>Upload Image</label>
+                    <InputFile OnChange="HandleFileSelection" class="form-control" accept=".png, .jpg, .jpeg"/>
+                </div>
+
+                <button type="button" @onclick="@(x => CreateBook())">Add Book</button>
+            </form>
+        </div>
+    </AuthorizeView>
+</div>
+
+
+@code {
+
+    private class Model {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public double Price { get; set; }
+        public int Pages { get; set; }
+        public int GenreId { get; set; }
+        public int DiscountId { get; set; }
+        public int AuthorId { get; set; }
+    }
+
+    private readonly Model _model = new();
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+    private string _base64String = string.Empty;
+
+    private List<GenreModel> _genres = new();
+    private List<DiscountModel> _discounts = new();
+    private List<AuthorModel> _authors = new();
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        AuthedUser = authState.User;
+
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+        }
+
+        _genres = GenreRepo.GetAll();
+        _discounts = DiscountRepo.GetAll();
+        _authors = AuthorRepo.GetAll();
+    }
+
+    public async Task HandleFileSelection(InputFileChangeEventArgs e) {
+        IBrowserFile? file = e.GetMultipleFiles().FirstOrDefault();
+
+        if (file != null) {
+            byte[] buffer = new byte[file.Size];
+
+            await using (Stream stream = file.OpenReadStream()) {
+                await stream.ReadAsync(buffer, 0, buffer.Length);
+            }
+
+            _base64String = Convert.ToBase64String(buffer);
+        }
+    }
+
+    private async Task GenreHasChanged(int id) {
+        _model.GenreId = id;
+
+        if (id == 0) {
+            _genres.Clear();
+        }
+    }
+
+    private async Task DiscountHasChanged(int id) {
+        _model.DiscountId = id;
+
+        if (id == 0) {
+            _discounts.Clear();
+        }
+    }
+
+    private async Task AuthorHasChanged(int id) {
+        _model.AuthorId = id;
+
+        if (id == 0) {
+            _discounts.Clear();
+        }
+    }
+
+
+    private void CreateBook() {
+        BookRepo.Add(new BookModel {
+            Name = _model.Name,
+            Description = _model.Description,
+            Price = _model.Price,
+            GenreId = _model.GenreId,
+            AuthorId = _model.AuthorId,
+            DiscountId = _model.DiscountId,
+            Purchases = 0,
+            Pages = _model.Pages,
+            Image = _base64String,
+            Active = true
+        });
+
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}

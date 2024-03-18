@@ -1,0 +1,256 @@
+﻿@using DataLibrary.Repositories
+@using BlazorServer.Auth
+@using Blazored.Toast.Configuration
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider;
+@inject NavigationManager Navigation;
+@inject UserRepository UserRepo
+@inject IJSRuntime Js
+
+<PageTitle>BookStore: The Best Book Store</PageTitle>
+<head>
+    <script src="https://kit.fontawesome.com/1305fe95e0.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet">
+    <link href="_content/Blazored.Toast/blazored-toast.css" rel="stylesheet"/>
+</head>
+
+<div class="page-wrap">
+    @*TOP NAVIGATION*@
+    <header>
+        <div class="logo">
+        </div>
+
+        <div class="search-bar">
+            <div class="search-container">
+                <input @bind="@_model.Search" type="text" class="search-input"
+                       placeholder="Search book, author, genre...">
+                <button class="search-button" @onclick="@(x => Search(_model.Search))">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <AuthorizeView>
+                <Authorized>
+                    <div class="account">
+                        <a class="icon-button-profile" @onclick="ProfileMenu">
+                            <i class="fa-regular fa-user"></i>
+                        </a>
+
+                        <!-- dropdown profile menu -->
+                        <div class="ddcontainer profiledd">
+                            <a class="ddheader">
+                                <div class="icon-button">
+                                    <i class="fa-regular fa-user"></i>
+                                </div>
+                                <h6>@UserRepo.GetByEmail(context.User.Identity.Name).RoleModel.Name</h6>
+                                <h5 class="ddname">@UserRepo.GetByEmail(context.User.Identity.Name).Name</h5><span class="ddtitle"></span>
+                            </a>
+                            <nav class="ddnav">
+                                <a @onclick="RouteToSettings">
+                                    <span>Settings</span>
+                                </a>
+                                <a @onclick="RouteToPurchases">
+                                    <span>History</span>
+                                </a>
+                                <a @onclick="Logout">
+                                    <span>Logout</span>
+                                </a>
+
+                            </nav>
+                        </div>
+                    </div>
+
+                    <div class="cart">
+                        <a class="icon-button" @onclick="RouteToCart">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </a>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="manage">
+                        <a class="icon-button" @onclick="RouteToLogin">
+                            Sign In
+                        </a>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <div class="manage" @onclick="RouteToManage">
+                        <i class="fa-solid fa-gear"></i>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </header>
+    @*TOP NAVIGATION*@
+
+    @*BELOW TOP NAVIGATION*@
+    <nav>
+        <ul>
+            <li>
+                <a class="nav-route" @onclick="@(x => RouteToHome())">HOME</a>
+            </li>
+            <li>
+                <a class="nav-route" @onclick="@(x => RouteToStore())">ALL BOOKS</a>
+            </li>
+            <li>
+                <a class="nav-route" @onclick="@(x => RouteToDiscounts())">SPECIAL OFFERS</a>
+            </li>
+            <li>
+                <a class="nav-route" @onclick="@(x => RouteToNew())">NEW BOOKS</a>
+            </li>
+        </ul>
+    </nav>
+    @*BELOW TOP NAVIGATION*@
+
+    @*BODY*@
+    <main>
+        <article class="content">
+            @Body
+        </article>
+    </main>
+    @*BODY*@
+
+    @*FOOTER*@
+    <footer class="main-footer">
+        <div class="row">
+            <div class="col">
+                <p>This is a Book Store, made for everyone's use.</p>
+            </div>
+            <div class="col">
+                <h3>
+                    Office
+                    <div class="underline">
+                        <span></span>
+                    </div>
+                </h3>
+                <p>Book Avenue</p>
+                <p>Office of Books</p>
+                <p>Library st., Librarian</p>
+                <p class="email-id">support@bookshop.com</p>
+                <h4>+37060500000</h4>
+            </div>
+            <div class="col">
+                <h3>
+                    Links
+                    <div class="underline">
+                        <span></span>
+                    </div>
+                </h3>
+                <ul class="footer-ul">
+                    <li>
+                        <a href="">Home</a>
+                    </li>
+                    <li>
+                        <a href="">Services</a>
+                    </li>
+                    <li>
+                        <a href="">About Us</a>
+                    </li>
+                    <li>
+                        <a href="">Features</a>
+                    </li>
+                    <li>
+                        <a href="">Contacts</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col">
+                <h3>
+                    Newsletter
+                    <div class="underline">
+                        <span></span>
+                    </div>
+                </h3>
+                <form class="news-form">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="email" placeholder="Enter your email" required=""/>
+                    <button type="submit">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+                <div class="social-icons">
+                    <i class="fa-brands fa-facebook"></i>
+                    <i class="fa-brands fa-twitter"></i>
+                    <i class="fa-brands fa-instagram"></i>
+                    <i class="fa-brands fa-youtube"></i>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <p class="copyright">Book Shop - 2023 © All Rights Preserved</p>
+    </footer>
+    @*FOOTER*@
+</div>
+
+<BlazoredToasts Position="ToastPosition.TopRight" Timeout="3" IconType="IconType.Material">
+
+</BlazoredToasts>
+
+@code
+{
+    private class Model {
+        public string Search { get; set; }
+    }
+
+    private readonly Model _model = new();
+
+    private async Task Logout() {
+        AuthenticationProvider? customAuthStateProvider = (AuthenticationProvider)AuthStateProvider;
+
+        await customAuthStateProvider.UpdateAuthenticationState(null);
+        Navigation.NavigateTo("/", true);
+    }
+
+    async void ProfileMenu() {
+        await Js.InvokeVoidAsync("dropdownProfile");
+    }
+
+    private void RouteToStore() {
+        Navigation.NavigateTo("/store");
+    }
+
+    private void RouteToDiscounts() {
+        Navigation.NavigateTo("/store/discount");
+    }
+
+    private void RouteToNew() {
+        Navigation.NavigateTo("/store/new");
+    }
+
+    private void RouteToHome() {
+        Navigation.NavigateTo("/");
+    }
+
+    private void RouteToSettings() {
+        Navigation.NavigateTo("/settings");
+    }
+
+    private void RouteToPurchases() {
+        Navigation.NavigateTo("/purchases");
+    }
+
+    private void RouteToLogin() {
+        Navigation.NavigateTo("/login");
+    }
+
+    private void RouteToCart() {
+        Navigation.NavigateTo("/cart");
+    }
+
+    private void RouteToManage() {
+        Navigation.NavigateTo("/manage");
+    }
+
+    public void Search(string searchString) {
+        Navigation.NavigateTo("/store/search/" + searchString);
+        Navigation.Refresh(true);
+    }
+}

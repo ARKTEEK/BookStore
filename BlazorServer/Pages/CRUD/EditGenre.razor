@@ -1,0 +1,66 @@
+﻿@page "/edit/genre/{Id:int}"
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@using System.Security.Claims
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject GenreRepository GenreRepo
+
+<div class="settings-body">
+    <AuthorizeView>
+
+        <div class="container">
+            <header>Editing #@Id Genre</header>
+            <form class="form">
+                <div class="input-box">
+                    <label>Name</label>
+                    <input @bind="_model.Name" type="text" placeholder="Enter genre's name" required/>
+                </div>
+
+                <button type="button" @onclick="@(x => EditExistingGenre())">Edit Genre</button>
+            </form>
+        </div>
+    </AuthorizeView>
+</div>
+
+@code {
+
+    private class Model {
+        public string Name { get; set; }
+    }
+
+    [Parameter]
+    public string? Type { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private readonly Model _model = new();
+    public GenreModel Genre { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+        }
+
+        Genre = GenreRepo.GetById(Id);
+
+        _model.Name = Genre.Name;
+    }
+
+    public void EditExistingGenre() {
+        Genre.Name = _model.Name;
+
+        GenreRepo.Update(Genre);
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}

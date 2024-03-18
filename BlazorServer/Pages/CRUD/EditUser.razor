@@ -1,0 +1,152 @@
+﻿@page "/edit/user/{Id:int}"
+@using DataLibrary.Models
+@using DataLibrary.Repositories
+@using System.Security.Claims
+@using BlazorServer.Services.Interface
+@layout MainLayout
+@inject NavigationManager Navigation
+@inject UserRepository UserRepo
+@inject RoleRepository RoleRepo
+
+<div class="settings-body">
+    <AuthorizeView>
+
+        <div class="container">
+            <header>Editing #@Id User</header>
+            <form class="form">
+
+                <div class="column">
+                    <div class="input-box">
+                        <label>Name</label>
+                        <input @bind="_model.Name" type="text" placeholder="Enter user's name"
+                               required/>
+                    </div>
+                    <div class="input-box">
+                        <label>Surname</label>
+                        <input @bind="_model.Surname" type="text" placeholder="Enter user's surname"
+                               required/>
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="input-box">
+                        <label>Email</label>
+                        <input @bind="_model.Email" type="text" placeholder="Enter user's email" required/>
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="input-box">
+                        <label>Telephone</label>
+                        <input @bind="_model.Telephone" type="text" placeholder="Enter user's telephone" required/>
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="input-box">
+                        <label>City</label>
+                        <input @bind="_model.City" type="text" placeholder="Enter user's city"
+                               required/>
+                    </div>
+                    <div class="input-box">
+                        <label>Street Address</label>
+                        <input @bind="_model.StreetAddress" type="text" placeholder="Enter user's street address"
+                               required/>
+                    </div>
+                </div>
+
+                <div class="input-box">
+                    <label>Choose a Role</label>
+                    <InputSelectNumber class="form-control" ValueChanged="@((int value) => RoleHasChanged(value))"
+                                       ValueExpression="@(() => _model.RoleId)"
+                                       Value="@_model.RoleId">
+                        <option value="0">--Select user's role--</option>
+
+                        @foreach (RoleModel role in Roles) {
+                            @if (role.Id == _model.RoleId) {
+                                <option selected value="@role.Id">@role.Name</option>
+                            } else {
+                                <option value="@role.Id">@role.Name</option>
+                            }
+                        }
+                    </InputSelectNumber>
+
+                </div>
+                <button type="button" @onclick="@(x => UpdateUser())">Edit User</button>
+            </form>
+        </div>
+    </AuthorizeView>
+</div>
+
+@code {
+
+    private class Model {
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public int RoleId { get; set; }
+        public int? Telephone { get; set; }
+        public string StreetAddress { get; set; }
+        public string City { get; set; }
+        public string Email { get; set; }
+    }
+
+    private readonly Model _model = new();
+
+    [Parameter]
+    public string? Type { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    public UserModel User { get; set; }
+
+    private List<RoleModel> Roles { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; }
+
+    public ClaimsPrincipal AuthedUser { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        AuthenticationState authenticationState = await AuthState;
+        AuthedUser = authenticationState.User;
+
+        if (!AuthedUser.Identity.IsAuthenticated) {
+            Navigation.NavigateTo("/login", true);
+        }
+
+        Roles = RoleRepo.GetAll();
+
+        User = UserRepo.GetById(Id);
+
+        _model.Name = User.Name;
+        _model.Surname = User.Surname;
+        _model.City = User.City;
+        _model.StreetAddress = User.StreetAddress;
+        _model.Email = User.Email;
+        _model.RoleId = User.RoleId;
+        _model.Telephone = User.Telephone;
+    }
+
+    private async Task RoleHasChanged(int id) {
+        _model.RoleId = id;
+
+        if (id == 0) {
+            Roles.Clear();
+        }
+    }
+
+    private void UpdateUser() {
+        User.Name = _model.Name;
+        User.Surname = _model.Surname;
+        User.City = _model.City;
+        User.StreetAddress = _model.StreetAddress;
+        User.Email = _model.Email;
+        User.RoleId = _model.RoleId;
+        User.Telephone = _model.Telephone;
+
+        UserRepo.Update(User);
+        Navigation.NavigateTo("/gate", true);
+    }
+
+}
