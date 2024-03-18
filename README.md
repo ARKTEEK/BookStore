@@ -10,6 +10,8 @@ To start this project you will need to install [.NET 8.0](https://dotnet.microso
 
 To edit database login string, you have to change DefaultConnection in appsettings.json file, which you can find in BlazorServer folder.
 
+To start Blazor Website, go into BlazorServer folder and type `dotnet run`.
+
     
 ## Preview
 
